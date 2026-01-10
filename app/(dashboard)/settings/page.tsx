@@ -23,6 +23,7 @@ export default function SettingPage() {
     name: "",
     image: "",
   });
+//   handle signature name change here
   const onChangeSignature = (e : React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setSignatureData((preve) => {
@@ -34,7 +35,7 @@ export default function SettingPage() {
   } 
 
 //   handle signature image upload here
-const handleSignatureImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSignatureImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length < 0) return
 
@@ -49,6 +50,16 @@ const handleSignatureImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
         }
     })
 }
+
+    const handleOnChangeLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length < 0) return;
+    const file = files[0];
+    // image to base64
+    const image = await imagebase64(file);
+    setLogo(image as string);
+  }
+
   return (
     <div className="p-4">
       <div>
@@ -62,7 +73,7 @@ const handleSignatureImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
           </AccordionTrigger>
           <AccordionContent>
             <form className="w-full grid gap-2">
-              <Input type="file" className="max-w-sm w-full" />
+              <Input type="file" className="max-w-sm w-full" onChange={handleOnChangeLogo} />
               <div className="w-full max-w-xs">
                 {logo ? (
                   <Image
@@ -94,7 +105,7 @@ const handleSignatureImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
             Signature de la facture
           </AccordionTrigger>
           <AccordionContent>
-            <form>
+            <form className="w-full grid gap-2">
                 <Input
                     type="text"
                     placeholder="Nom de la signature"
@@ -102,7 +113,7 @@ const handleSignatureImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
                     onChange={onChangeSignature}
                     name="name"
                 />
-                <Input type="file" className="max-w-sm w-full" />
+                <Input type="file" className="max-w-sm w-full" onChange={handleSignatureImage} />
                 <div className="w-full max-w-xs">
                 {signatureData.image ? (
                   <Image
