@@ -35,3 +35,29 @@ if (process.env.NODE_ENV === "development") {
 // Export a module-scoped MongoClient. By doing this in a
 // separate module, the client can be shared across functions.
 export default client
+
+// mongodb-client.ts - FICHIER CORRECT
+
+
+// import { MongoClient } from 'mongodb'
+
+// const uri = process.env.MONGODB_URI!
+// const options = {}
+
+// let client: MongoClient
+// let clientPromise: Promise<MongoClient>
+
+// if (process.env.NODE_ENV === 'development') {
+//   // En développement, réutilisez le client via global
+//   if (!(global as any)._mongoClientPromise) {
+//     client = new MongoClient(uri, options)
+//     ;(global as any)._mongoClientPromise = client.connect()
+//   }
+//   clientPromise = (global as any)._mongoClientPromise
+// } else {
+//   // En production, créez un nouveau client
+//   client = new MongoClient(uri, options)
+//   clientPromise = client.connect()
+// }
+
+// export default clientPromise // ← Export d'une PROMESSE
