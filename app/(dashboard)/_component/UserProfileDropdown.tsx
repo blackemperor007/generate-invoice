@@ -9,8 +9,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { auth, signOut } from "@/lib/auth";
 import getAvatarName from "@/lib/getAvatarName";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronUp, User2 } from "lucide-react";
 import UserProfile from "./UserProfile";
+import { SidebarMenuButton } from "@/components/ui/sidebar";
 
 interface IUserProfileDropdown {
   isFullName: boolean;
@@ -65,5 +66,28 @@ export default async function UserProfileDropdown({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+
+    // <DropdownMenu>
+    //   <DropdownMenuTrigger asChild>
+    //     <SidebarMenuButton>
+    //       <User2 /> Username
+    //       <ChevronUp className="ml-auto" />
+    //     </SidebarMenuButton>
+    //   </DropdownMenuTrigger>
+    //   <DropdownMenuContent
+    //     side="top"
+    //     className="w-[--radix-popper-anchor-width]"
+    //   >
+    //     <DropdownMenuItem>
+    //       <span>Account</span>
+    //     </DropdownMenuItem>
+    //     <DropdownMenuItem>
+    //       <span>Billing</span>
+    //     </DropdownMenuItem>
+    //     <DropdownMenuItem>
+    //       <span>Sign out</span>
+    //     </DropdownMenuItem>
+    //   </DropdownMenuContent>
+    // </DropdownMenu>
   );
 }

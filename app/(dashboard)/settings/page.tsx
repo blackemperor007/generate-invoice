@@ -10,12 +10,14 @@ import { Input } from "@/components/ui/input";
 import imagebase64 from "@/lib/imagebase64";
 import { sign } from "crypto";
 import Image from "next/image";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 type TSignatureData = {
-    name: string;
-    image: string;
-}
+  name: string;
+  image: string;
+};
 
 export default function SettingPage() {
   const [logo, setLogo] = useState<string>();
@@ -23,42 +25,84 @@ export default function SettingPage() {
     name: "",
     image: "",
   });
-//   handle signature name change here
-  const onChangeSignature = (e : React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const router = useRouter()
+  //   handle signature name change here
+  const onChangeSignature = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setSignatureData((preve) => {
-        return {
-            ...preve,
-            [name]: value
-        }
-    })
-  } 
+      return {
+        ...preve,
+        [name]: value,
+      };
+    });
+  };
 
-//   handle signature image upload here
-    const handleSignatureImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || files.length < 0) return
+  //   handle signature image upload here
+  const handleSignatureImage = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = e.target.files;
+    if (!files || files.length < 0) return;
 
-    const file = files[0]
+    const file = files[0];
 
     // image to base64
-    const image = await imagebase64(file)
+    const image = await imagebase64(file);
     setSignatureData((preve) => {
-        return {
-            ...preve,
-            image: image as string
-        }
-    })
-}
+      return {
+        ...preve,
+        image: image as string,
+      };
+    });
+  };
 
-    const handleOnChangeLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOnChangeLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length < 0) return;
     const file = files[0];
     // image to base64
     const image = await imagebase64(file);
     setLogo(image as string);
-  }
+  };
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch("/api/settings");
+      const responseData = await response.json();
+
+      if (response.status === 200) {
+        setLogo(responseData?.data?.invoiceLogo);
+        setSignatureData(
+          responseData?.data?.signature || { name: "", image: "" }
+        );
+      }
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, data: any) => {
+    e.preventDefault()
+    try {
+        setIsLoading(true)
+        const response = await fetch("/api/settings", {
+            method : 'post',
+            body : JSON.stringify(data)
+        })
+
+        if (response.status === 2000) {
+            toast.success("Paramètres modifié avec Succès")
+            fetchData()
+        }
+    } catch (error) {
+        toast.error("Something went wrong")
+    }finally {
+        setIsLoading(false)
+    }
+  };
 
   return (
     <div className="p-4">
@@ -72,8 +116,14 @@ export default function SettingPage() {
             Logo de facture
           </AccordionTrigger>
           <AccordionContent>
-            <form className="w-full grid gap-2">
-              <Input type="file" className="max-w-sm w-full" onChange={handleOnChangeLogo} />
+            <form className="w-full grid gap-2" onSubmit= {(e)=>handleSubmit(e,{ logo })}>
+              <Input
+                type="file"
+                className="max-w-sm w-full"
+                onChange={handleOnChangeLogo}
+                required
+                disabled = {isLoading}
+              />
               <div className="w-full max-w-xs">
                 {logo ? (
                   <Image
@@ -106,15 +156,19 @@ export default function SettingPage() {
           </AccordionTrigger>
           <AccordionContent>
             <form className="w-full grid gap-2">
-                <Input
-                    type="text"
-                    placeholder="Nom de la signature"
-                    value={signatureData.name}
-                    onChange={onChangeSignature}
-                    name="name"
-                />
-                <Input type="file" className="max-w-sm w-full" onChange={handleSignatureImage} />
-                <div className="w-full max-w-xs">
+              <Input
+                type="text"
+                placeholder="Nom de la signature"
+                value={signatureData.name}
+                onChange={onChangeSignature}
+                name="name"
+              />
+              <Input
+                type="file"
+                className="max-w-sm w-full"
+                onChange={handleSignatureImage}
+              />
+              <div className="w-full max-w-xs">
                 {signatureData.image ? (
                   <Image
                     className="aspect-video h-20 border-2 border-dotted max-h-20 object-scale-down"
