@@ -12,7 +12,7 @@ import getAvatarName from "@/lib/getAvatarName";
 import { ChevronDown } from "lucide-react";
 import UserProfile from "./UserProfile";
 
-interface UserProfileDropdown {
+interface IUserProfileDropdown {
   isFullName: boolean;
   isArrowUp: boolean;
 }
@@ -20,7 +20,7 @@ interface UserProfileDropdown {
 export default async function UserProfileDropdown({
   isFullName,
   isArrowUp,
-}: UserProfileDropdown) {
+}: IUserProfileDropdown) {
   const session = await auth();
   return (
     <DropdownMenu>

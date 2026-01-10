@@ -52,7 +52,7 @@ export default function DashboardSidebar({children}: {children: React.ReactNode}
                 className={cn(pathname === "/settings" && "bg-white")}
               >
                 <Settings className="mr-2 h-4 w-4"/>
-                <span>Settings</span>
+                <span>Paramètres</span>
               </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>

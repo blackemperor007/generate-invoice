@@ -20,3 +20,8 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 ## Note du developpeur
 Ne pas oublier de télécharger toutes les dépendances liées au projet
 controler tous les fichiers qui nécessite un contrôle sur leur structure
+
+
+les dependances à installer : 
+# Dialog
+# accordion
