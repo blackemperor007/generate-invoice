@@ -12,7 +12,7 @@ import {
 import { currencyOptions } from "@/lib/utils";
 import { onboardingSchema } from "@/lib/zodSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
@@ -57,7 +57,7 @@ export default function UserEditProfile({
 
       if (response.status === 200) {
         // Se rappeler de vérifier cette quand la connexion sera rétablie
-        router.reload()
+        router.refresh()
       }
     } catch (error) {
       console.log(error);
