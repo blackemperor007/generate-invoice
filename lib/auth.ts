@@ -25,5 +25,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     verifyRequest : "/verify-email",
     signIn : "/login"
   },
-  debug : true
 })

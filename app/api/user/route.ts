@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       message: "Détails de l'utilisateur mis à jour avec succès",
-      user: userDetails,
+      data: userDetails,
     })
 
 

@@ -7,22 +7,46 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { currencyOptions } from "@/lib/utils";
 import { onboardingSchema } from "@/lib/zodSchema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { error } from "console";
 import { UserCircle } from "lucide-react";
-import router from "next/router";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { DefaultValues, useForm } from "react-hook-form";
-import z from "zod";
+import z, { boolean } from "zod";
 
 export default function OnboardingPage() {
 
     const { register , handleSubmit, formState : { errors } } = useForm<z.infer<typeof onboardingSchema>>({
-        // resolver : zodResolver(onboardingSchema),
-        // DefaultValues : {
-        //     currency : "USD"
-        // }
+        resolver : zodResolver(onboardingSchema),
+        defaultValues : {
+            currency : "USD"
+        }
     })
 
-    
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const router = useRouter();
 
+
+    const onSubmit = async (data: z.infer<typeof onboardingSchema>) => {
+        
+        try {
+            setIsLoading(true)
+            const response = await fetch('/api/user', {
+                method: 'put',
+                body: JSON.stringify(data),
+            })
+            const responseData = await response.json();
+
+            if (response.status === 200) {
+               router.push('/dashboard')
+            }
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setIsLoading(false)
+        }
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4">
@@ -41,18 +65,35 @@ export default function OnboardingPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form className="grid gap-4">
+                    <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)}>
                         <div className="grid gap-2">
                             <Label>Nom </Label>
-                            <Input placeholder="e.g : John" type="text" />
+                            <Input placeholder="e.g : John" type="text"
+                            {...register("firstName", { required: true })}
+                            disabled={isLoading} />
+                            {
+                                errors.firstName && (
+                                    <span className="text-sm text-red-600">
+                                        {errors.firstName.message}
+                                    </span>
+                                )
+                            }
                         </div>
                         <div className="grid gap-2">
                             <Label>Prénom : </Label>
-                            <Input placeholder="e.g : Doe" type="text" />
+                            <Input placeholder="e.g : Doe" type="text"
+                            {...register("lastName", { required: true })} disabled={isLoading} />
+                            {
+                                errors.lastName && (
+                                    <span className="text-sm text-red-600">
+                                        {errors.lastName.message}
+                                    </span>
+                                )
+                            }
                         </div>
                         <div className="grid gap-2">
-                            <Label>Nom : </Label>
-                            <Select>
+                            <Label>Sélectionner la devise : </Label>
+                            <Select {...register("currency", { required: true })}>
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Sélectionnez la devise" />
                                 </SelectTrigger>
@@ -60,7 +101,7 @@ export default function OnboardingPage() {
                                     {
                                         Object.keys(currencyOptions).map((item: string, index: number) => {
                                             return (
-                                                <SelectItem key={item} value={item}>
+                                                <SelectItem key={item} value={item} >
                                                     {item}
                                                 </SelectItem>
                                             )
@@ -69,8 +110,10 @@ export default function OnboardingPage() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <Button type="submit" className="w-full mt-4">
-                            Créer mon compte
+                        <Button disabled={isLoading}>
+                            {
+                                isLoading ? "Création de votre compte..." : "Créer mon compte"
+                            }
                         </Button>
                     </form>
                 </CardContent>
