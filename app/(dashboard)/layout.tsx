@@ -3,6 +3,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import DashboardSidebar from "./_component/DashboardSidebar";
 import UserProfileDropdown from "./_component/UserProfileDropdown";
 import DashbardHeader from "./_component/DashbardHeader";
+import { Suspense } from "react";
 
 export default function DashboardLayout({children} : { children : React.ReactNode}) {
     return (
@@ -16,7 +17,9 @@ export default function DashboardLayout({children} : { children : React.ReactNod
             </DashboardSidebar>
             <main className="w-full relative">
                 <DashbardHeader/>
-                {children}
+                    <Suspense fallback={<div className="p-4">Loading...</div>}>
+                        {children}
+                    </Suspense>
                 <ProtectedPae/>
             </main>
         </SidebarProvider>
