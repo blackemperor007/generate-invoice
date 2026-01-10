@@ -1,12 +1,14 @@
+import { Accordion } from "@/components/ui/accordion";
+
 export default function SettingPage() {
     return (
         <div className="p-4">
             <div>
                 <h1 className="font-semibold text-xl">Paramètres</h1>
             </div>
-            {/* <Accordion type="multiple">
+            <Accordion type="multiple">
 
-            </Accordion> */}
+            </Accordion>
         </div>
     )
 }

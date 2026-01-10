@@ -8,8 +8,7 @@ export default async function DashbardHeader() {
     <header className="sticky top-0 h-12 w-full border-b bg-white backdrop-blur-3xl flex items-center px-4 ">
         <SidebarTrigger/>
         <div>
-          Bienvenue
-          <span className='font-semibold'>
+          Bienvenue <span className='font-semibold'>
             <span>{session?.user.firstName ?? "_"}</span>
             {" "}
             <span>{session?.user.lastName ?? "_"}</span>

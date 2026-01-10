@@ -2,9 +2,10 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@radix-ui/react-dialog";
+} from "@/components/ui/dialog";
 import UserEditProfile from "./UserEditProfile";
 import { auth } from "@/lib/auth";
 
@@ -16,10 +17,10 @@ export default async function UserProfile() {
         Profile
       </DialogTrigger>
       <DialogContent>
-        {/* <DialogHeader> */}
-        <DialogTitle>Profile</DialogTitle>
-        <DialogDescription>Modifier votre profil ici.</DialogDescription>
-        {/* </DialogHeader> */}
+        <DialogHeader>
+          <DialogTitle>Profile</DialogTitle>
+          <DialogDescription>Modifier votre profil ici.</DialogDescription>
+        </DialogHeader>
         {/* user profile display and editor */}
         <UserEditProfile
           firstName={session?.user.firstName}
@@ -28,6 +29,7 @@ export default async function UserProfile() {
           email={session?.user.email}
         />
       </DialogContent>
+      
     </Dialog>
   );
 }

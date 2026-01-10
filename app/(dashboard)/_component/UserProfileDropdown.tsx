@@ -54,7 +54,6 @@ export default async function UserProfileDropdown({
         <DropdownMenuSeparator />
         {/* user profile */}
         <UserProfile />
-        Profile
         <DropdownMenuItem
           onClick={async () => {
             "use server";
