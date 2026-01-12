@@ -27,9 +27,11 @@ export default function SettingPage() {
   });
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const router = useRouter()
+
   //   handle signature name change here
   const onChangeSignature = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
     setSignatureData((preve) => {
       return {
         ...preve,
@@ -39,20 +41,19 @@ export default function SettingPage() {
   };
 
   //   handle signature image upload here
-  const handleSignatureImage = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleSignatureImage = async ( e: React.ChangeEvent<HTMLInputElement> ) => {
     const files = e.target.files;
-    if (!files || files.length < 0) return;
+    if (!files || files.length < 0) return
 
     const file = files[0];
 
     // image to base64
     const image = await imagebase64(file);
+
     setSignatureData((preve) => {
       return {
         ...preve,
-        image: image as string,
+        image : image as string
       };
     });
   };
@@ -93,7 +94,7 @@ export default function SettingPage() {
             body : JSON.stringify(data)
         })
 
-        if (response.status === 2000) {
+        if (response.status === 200) {
             toast.success("Paramètres modifié avec Succès")
             fetchData()
         }
@@ -141,7 +142,7 @@ export default function SettingPage() {
                   </div>
                 )}
               </div>
-              <Button type="submit" className="w-fit">
+              <Button className="w-fit">
                 Enregistrer
               </Button>
             </form>
@@ -155,7 +156,7 @@ export default function SettingPage() {
             Signature de la facture
           </AccordionTrigger>
           <AccordionContent>
-            <form className="w-full grid gap-2">
+            <form className="w-full grid gap-2" onSubmit={(e) =>handleSubmit(e,{ signature : signatureData})}>
               <Input
                 type="text"
                 placeholder="Nom de la signature"
@@ -185,7 +186,7 @@ export default function SettingPage() {
                   </div>
                 )}
               </div>
-              <Button type="submit" className="w-fit">
+              <Button className="w-fit">
                 Enregistrer
               </Button>
             </form>
