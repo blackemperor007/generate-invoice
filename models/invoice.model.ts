@@ -10,8 +10,8 @@ interface IUserInvoice {
 }
 
 const Status = [
-    "EN ATTENTE",
     "PAYER",
+    "NON PAYER",
     "ANNULER"
 ]
 
