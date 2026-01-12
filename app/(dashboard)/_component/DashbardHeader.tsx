@@ -1,11 +1,12 @@
 import { auth } from '@/lib/auth'
 import UserProfileDropdown from './UserProfileDropdown'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { ModeToggle } from './ThemeToggle'
 
 export default async function DashbardHeader() {
   const session = await auth()
   return (
-    <header className="sticky top-0 h-12 w-full border-b bg-white backdrop-blur-3xl flex items-center px-4 ">
+    <header className="sticky top-0 h-12 w-full border-b backdrop-blur-3xl flex items-center px-4 ">
         <SidebarTrigger/>
         <div>
           Bienvenue <span className='font-semibold'>
@@ -21,6 +22,7 @@ export default async function DashbardHeader() {
           isArrowUp = {false}
           />
         </div>
+        <ModeToggle/>
     </header>
   )
 }

@@ -56,7 +56,7 @@ export default function DashboardSidebar({
             <SidebarMenuButton asChild>
               <Link
                 href={"/dashboard"}
-                className={cn(pathname === "/dashboard" && "bg-white")}
+                className={cn(pathname === "/dashboard" && "bg-gray")}
               >
                 <LayoutDashboardIcon className="mr-2 h-4 w-4" />
                 Dashboard
@@ -68,7 +68,7 @@ export default function DashboardSidebar({
             <SidebarMenuButton asChild>
               <Link
                 href={"/invoice"}
-                className={cn(pathname === "/invoice" && "bg-white")}
+                className={cn(pathname === "/invoice" && "bg-gray")}
               >
                 <BookAIcon className="mr-2 h-4 w-4" />
                 Facture
@@ -84,7 +84,7 @@ export default function DashboardSidebar({
                 <SidebarMenuButton asChild>
                     <Link
                 href={"/settings"}
-                className={cn(pathname === "/settings" && "bg-white")}
+                className={cn(pathname === "/settings" && "bg-red")}
               >
                 <Settings className="mr-2 h-4 w-4"/>
                 <span>Paramètres</span>
