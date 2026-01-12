@@ -50,9 +50,9 @@ export const InvoiceSchemaZod = z.object({
     })),
 
     sub_total : z.number(),
-    discount : z.number().default(0),
+    discount : z.number(),
 
-    tax_percentage : z.number().default(0),
+    tax_percentage : z.number(),
 
     total :  z.number(),
 
