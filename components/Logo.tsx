@@ -6,7 +6,7 @@ export default function Logo() {
             <Image
                 src={"/logo.png"}
                 alt="MoneTix App"
-                width={180}
+                width={70}
                 height={50}
             />
         </div>
