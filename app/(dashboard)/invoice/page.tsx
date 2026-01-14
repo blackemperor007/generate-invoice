@@ -1,3 +1,5 @@
+"use client"
+
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -14,3 +16,20 @@ export default function InvoicePage(){
         </div>
     )
 }
+
+// import { buttonVariants } from "@/components/ui/button";
+// import { auth } from "@/lib/auth";
+// import { cn } from "@/lib/utils";
+// import Link from "next/link";
+// import { Suspense } from "react";
+
+// export default async function InvoicePage(){
+//     const session = await auth()
+//     return(
+//         <Suspense 
+//         // fallback={<Loading/>}
+//         >
+//             {/* <InvoiceClientPage userId={session?.user.id} currency={session?.user.currency}/> */}
+//         </Suspense>
+//     )
+// }
