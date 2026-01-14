@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { currencyOptions } from "@/lib/utils";
+import { currencyOption } from "@/lib/utils";
 import { onboardingSchema } from "@/lib/zodSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -102,7 +102,7 @@ export default function UserEditProfile({
             <SelectValue placeholder="Sélectionnez la devise" />
           </SelectTrigger>
           <SelectContent>
-            {Object.keys(currencyOptions).map((item: string, index: number) => {
+            {Object.keys(currencyOption).map((item: string, index: number) => {
               return (
                 <SelectItem key={item} value={item}>
                   {item}
