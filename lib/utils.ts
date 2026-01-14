@@ -5,10 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const currencyOptions = {
-  INR :	"₹",
-  USD :	"$",
-  EUR :	"€",
-  GBP :	"£",
-  JPY :	"¥"
-}
+export const currencyOption = {
+  INR: '₹',
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥'
+};
+
+ export type TCurrencyKey = keyof typeof currencyOption;

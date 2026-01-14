@@ -1,34 +1,38 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
-interface ISignaure {
+interface ISignature { 
     name : string;
     image : string
 }
 
-interface ISettings {
+export interface ISettings {
     _id? : mongoose.Types.ObjectId;
     invoiceLogo? : string,
-    signature? : ISignaure,
-    userId : mongoose.Types.ObjectId,
-    createAt? : Date,
-    updateAt? : Date
+    signature? : ISignature
+    userId : mongoose.Types.ObjectId;
+    createdAt? : Date;
+    updatedAt? : Date;
 }
 
-const signatureSchema = new mongoose.Schema<ISignaure>({
+const signatureSchema = new mongoose.Schema<ISignature>({
     name : { type : String , default : null },
     image : { type : String , default : null }
-}, {
+},{
     _id : false
 })
 
-const settingsSchema = new mongoose.Schema<ISettings>({
-    invoiceLogo : { type : String, default : null},
+const settingsSchema =  new mongoose.Schema<ISettings>({
+    invoiceLogo : { type : String, default : null },
     signature : signatureSchema,
-    userId : { type : mongoose.Schema.Types.ObjectId, ref : "user", default : null, required : true }
-}, {
+    userId : { type : mongoose.Schema.ObjectId , ref : "user", required : true}
+},{
     timestamps : true
 })
 
-const SettingModel = mongoose.models.setting || mongoose.model("setting", settingsSchema)
+const SettingModel = mongoose.models.setting || mongoose.model("setting",settingsSchema)
 
 export default SettingModel
+
+
+
+
