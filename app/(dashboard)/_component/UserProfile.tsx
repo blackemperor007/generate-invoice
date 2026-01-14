@@ -13,15 +13,16 @@ export default async function UserProfile() {
   const session = await auth();
   return (
     <Dialog>
-      <DialogTrigger className="w-full text-left px-2 py-1 cursor-pointer hover:bg-muted-foreground">
+      <DialogTrigger className="w-full text-left px-2 py-1 cursor-pointer hover:bg-muted-foreground/5">
         Profile
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Profile</DialogTitle>
-          <DialogDescription>Modifier votre profil ici.</DialogDescription>
+          <DialogDescription>Edit your profile details here.</DialogDescription>
         </DialogHeader>
-        {/* user profile display and editor */}
+
+        {/**user profile display and editor */}
         <UserEditProfile
           firstName={session?.user.firstName}
           lastName={session?.user.lastName}
@@ -29,7 +30,6 @@ export default async function UserProfile() {
           email={session?.user.email}
         />
       </DialogContent>
-      
     </Dialog>
   );
 }

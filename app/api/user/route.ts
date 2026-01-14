@@ -1,38 +1,91 @@
-import { auth } from "@/lib/auth";
-import { connectDB } from "@/lib/connectDB";
-import UserModel from "@/models/user.model";
-import { Connection } from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/lib/connectDB";
+import SettingModel from "@/models/Settings.model";
+import { auth } from "@/lib/auth";
 
-export async function PUT(request: NextRequest) {
+//create and update
+export async function POST(request: NextRequest) {
   try {
-    const { firstName, lastName, email } = await request.json();
-
     const session = await auth();
 
     if (!session) {
-      return new NextResponse("Vous n'êtes pas autorisé", { status: 401 });
+      return NextResponse.json(
+        {
+          message: "Unauthorized access",
+        },
+        {
+          status: 401,
+        }
+      );
     }
 
-    // function connect to db
+    const { logo, signature } = await request.json();
+
     await connectDB();
-    const userDetails = await UserModel.findByIdAndUpdate(
-      session.user?.id,
-      {
-        firstName,
-        lastName,
-        currency: "USD",
+
+    const setting = await SettingModel.findOne({ userId: session.user.id });
+
+    const payload = {
+      userId: session.user.id,
+      ...(logo && { invoiceLogo: logo }),
+      ...(signature && { signature: signature }),
+    };
+
+    //update the document
+    if (setting) {
+      const updateSetting = await SettingModel.findByIdAndUpdate(
+        setting._id,
+        payload
+      );
+
+      return NextResponse.json({
+        message: "Setting updated successfully",
       });
+    }
+
+    //create the document
+    const createSetting = await SettingModel.create(payload);
 
     return NextResponse.json({
-      message: "Détails de l'utilisateur mis à jour avec succès",
-      data: userDetails,
-    })
-
-
-  } catch (error: any) {
-    return NextResponse.json({
-      message: error || error.message || "Une erreur s'est produite lors de la mise à jour des détails de l'utilisateur",
+      message: "Setting updated successfully",
     });
+  } catch (error: any) {
+    return NextResponse.json(
+      {
+        message: error || error?.message || "Something went wrong",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+//get
+export async function GET(request: NextRequest) {
+  try {
+    const session = await auth();
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          message: "Unauthorized access",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    const getData = await SettingModel.findOne({ userId : session.user.id })
+
+    return NextResponse.json({
+        message : "Success",
+        data : getData
+    })
+  } catch (error : any) {
+    return NextResponse.json({
+        message : error || error?.message || "Something went wrong"
+    })
   }
 }

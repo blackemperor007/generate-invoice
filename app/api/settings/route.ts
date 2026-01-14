@@ -1,11 +1,9 @@
-import { auth } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/connectDB";
 import SettingModel from "@/models/Settings.model";
-import { User } from "lucide-react";
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 
-
-// Creation et modification
+//create and update
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -13,7 +11,7 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json(
         {
-          message: "Pas autorisé",
+          message: "Unauthorized access",
         },
         {
           status: 401,
@@ -33,38 +31,28 @@ export async function POST(request: NextRequest) {
       ...(signature && { signature: signature }),
     };
 
-    // modifier le document
+    //update the document
     if (setting) {
       const updateSetting = await SettingModel.findByIdAndUpdate(
         setting._id,
         payload
       );
-      return NextResponse.json(
-        {
-          message: "Paramètres mis à jour avec succès",
-          // data: updateSetting
-        },
-        {
-          status: 200,
-        }
-      );
+
+      return NextResponse.json({
+        message: "Setting updated successfully",
+      });
     }
 
-    // créer le document
+    //create the document
     const createSetting = await SettingModel.create(payload);
-    return NextResponse.json(
-      {
-        message: "Paramètres enregistrés avec succès",
-        // data: createSetting
-      },
-      {
-        status: 200,
-      }
-    );
+
+    return NextResponse.json({
+      message: "Setting updated successfully",
+    });
   } catch (error: any) {
     return NextResponse.json(
       {
-        message: error || error.message || "Internal Server Error",
+        message: error || error?.message || "Something went wrong",
       },
       {
         status: 500,
@@ -73,15 +61,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Récupération des paramètres
+//get
 export async function GET(request: NextRequest) {
-    try {
-        const session = await auth();
+  try {
+    const session = await auth();
 
     if (!session) {
       return NextResponse.json(
         {
-          message: "Pas autorisé",
+          message: "Unauthorized access",
         },
         {
           status: 401,
@@ -89,25 +77,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const getData = await SettingModel.findOne({ userId: session.user.id });
+    const getData = await SettingModel.findOne({ userId : session.user.id })
 
-    return NextResponse.json(
-      {
-        message: "Succès",
-        data: getData,
-      },
-      {
-        status: 200,
-      }
-    );
-    } catch (error : any) {
-        return NextResponse.json(
-      {
-        message: error || error.message ||"Erreur interne du serveur",
-      },
-      {
-        status: 500,
-      }
-    );
-    }
+    return NextResponse.json({
+        message : "Success",
+        data : getData
+    })
+  } catch (error : any) {
+    return NextResponse.json({
+        message : error || error?.message || "Something went wrong"
+    })
+  }
 }

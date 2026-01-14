@@ -1,11 +1,11 @@
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/connectDB";
+import { sendEmail } from "@/lib/email.config";
 import { currencyOption, TCurrencyKey } from "@/lib/utils";
 import InvoiceModel, { IInvoice } from "@/models/invoice.model";
 import { format } from "date-fns";
 import { NextResponse, NextRequest } from "next/server";
 import { InvoiceTemplate } from "../../../../components/template/SendInvoiceEmail";
-import { sendEmail } from "@/lib/email.config";
 
 export async function POST(
   request: NextRequest,
