@@ -46,7 +46,7 @@ export default function DashboardSidebar({
 }) {
   const pathname = usePathname();
   return (
-    <Sidebar className="">
+    <Sidebar className="" collapsible="icon">
       <SidebarHeader className="p-4">
         <Logo />
       </SidebarHeader>

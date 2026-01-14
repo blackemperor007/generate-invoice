@@ -13,10 +13,10 @@ export const onboardingSchema = z.object({
 });
 
 export const InvoiceSchemaZod = z.object({
-  invoice_no: z.string({ message: "invoice no. required " }),
+  invoice_no: z.string().min(1, { message: "invoice no. required " }),
   invoice_date: z.date({ message: "Invoice date is required" }),
   due_date: z.date({ message: "Invoice due date" }),
-  currency: z.string({ message: "currency is required" }),
+  currency : z.string().min(1, {message: "currency is required"}),
 
   from: z.object({
     name: z
@@ -35,7 +35,7 @@ export const InvoiceSchemaZod = z.object({
       .min(3, { message: "name is required " })
       .max(100, { message: "name is too longer " }),
     email: z.string().email({ message: "email is required" }),
-    address1: z.string({ message: "Address is required" }),
+    address1: z.string().min(5, { message: "Address is required" }),
     address2: z.string().optional(),
     address3: z.string().optional(),
   }),
@@ -61,5 +61,5 @@ export const InvoiceSchemaZod = z.object({
 
   notes: z.string().optional(),
 
-  status: z.enum(["PAYER", "NON PAYER", "ANNULER"]),
+  // status: z.enum(["PAYER", "NON PAYER", "ANNULER"]),
 });

@@ -8,7 +8,7 @@ import { auth, signIn } from "@/lib/auth";
 export default function LoginPage(){
     const session = auth()
 
-    console.log(session)
+    // console.log(session)
     return (
         <Card className="max-w-sm min-w-xs lg:min-w-sm">
             <CardHeader>
