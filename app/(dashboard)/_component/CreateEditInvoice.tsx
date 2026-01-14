@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -14,16 +13,19 @@ import { cn } from "@/lib/utils";
 import { InvoiceSchemaZod } from "@/lib/zodSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Calendar1Icon, Trash, WrapText } from "lucide-react";
+import { CalendarIcon, DeleteIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import z from "zod";
+import { z } from "zod";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 interface ICreateEditInvoice {
-  firstName: string | undefined;
-  lastName: string | undefined;
-  email: string | undefined | null;
-  currency: string | undefined;
+  firstName?: string | undefined;
+  lastName?: string | undefined;
+  email?: string | undefined | null;
+  currency?: string | undefined;
+  invoiceId?: string | undefined; //for edit section
 }
 
 export default function CreateEditInvoice({
@@ -31,6 +33,7 @@ export default function CreateEditInvoice({
   lastName,
   email,
   currency,
+  invoiceId, //
 }: ICreateEditInvoice) {
   const {
     register,
@@ -38,7 +41,9 @@ export default function CreateEditInvoice({
     formState: { errors },
     watch,
     setValue,
+    getValues,
     control,
+    reset,
   } = useForm<z.infer<typeof InvoiceSchemaZod>>({
     resolver: zodResolver(InvoiceSchemaZod),
     defaultValues: {
@@ -50,20 +55,54 @@ export default function CreateEditInvoice({
           total: 0,
         },
       ],
-      from : {
-        name : `${firstName} ${lastName}`,
-        email : email as string
+      from: {
+        name: `${firstName} ${lastName}`,
+        email: email as string,
       },
-      tax_percentage : 0,
-      // currency : currency,
+      tax_percentage: 0,
+      currency: currency,
+      discount: 0,
+      sub_total: 0,
+      total: 0,
     },
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const router = useRouter();
 
-  // items name
-  const { fields, append, remove } = useFieldArray({ control, name: "items" });
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/invoice?invoiceId=${invoiceId}`);
+      const responseData = await response.json();
 
-  // total of items
+      if (response.status === 200) {
+        const invoiceData = responseData.data[0];
+        reset({
+          ...invoiceData,
+          invoice_date: new Date(invoiceData.invoice_date),
+          due_date: new Date(invoiceData.due_date),
+        });
+      }
+    } catch (error) {
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  //edit component
+  useEffect(() => {
+    if (invoiceId) {
+      fetchData();
+    }
+  }, [invoiceId]);
+
+  //items
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "items",
+  });
+
+  //total of items
   const items = watch("items");
   useEffect(() => {
     items.forEach((item, index) => {
@@ -72,13 +111,14 @@ export default function CreateEditInvoice({
 
       const total = quantity * price;
 
+      // console.log(total);
       setValue(`items.${index}.total`, total);
     });
     const sub_total = items.reduce((preve, curr) => preve + curr.total, 0);
     setValue("sub_total", sub_total);
   }, [JSON.stringify(items), setValue]);
 
-  // add new item row
+  //add new item row
   const handleAddNewItemRow = (e: any) => {
     e.preventDefault();
     append({
@@ -88,40 +128,83 @@ export default function CreateEditInvoice({
       total: 0,
     });
   };
-
   //remove item row
-  const handleRemoveItemRow = (index: number) => {
+  const handleRemoveItem = (index: number) => {
     remove(index);
   };
 
-  const onSubmit = (data: z.infer<typeof InvoiceSchemaZod>) => {
-    console.log("onSubmit",data);
+  const onSubmit = async (data: z.infer<typeof InvoiceSchemaZod>) => {
+    // console.log("onSubmit", data);
+
+    //for create invoice
+    if (!invoiceId) {
+      setIsLoading(true);
+      const response = await fetch("/api/invoice", {
+        method: "post",
+        body: JSON.stringify(data),
+      });
+      const responseData = await response.json();
+
+      if (response.status === 200) {
+        toast.success(responseData?.message);
+        router.push("/invoice");
+      } else {
+        toast.error("Something went wrong");
+      }
+      setIsLoading(false);
+      return;
+    }
+
+    //for edit invoice
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/invoice", {
+        method: "put",
+        body: JSON.stringify({
+          invoiceId,
+          ...data,
+        }),
+      });
+      const responseData = await response.json();
+
+      if (response.status === 200) {
+        toast.success("Invoice updated Successfully");
+        router.push("/invoice")
+      } else {
+        toast.error("Something went wrong");
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const sub_total = watch("sub_total") || 0;
   const discount = watch("discount") || 0;
   const sub_totalRemoveDiscount = sub_total - discount;
-  const taxAmount = (sub_totalRemoveDiscount * watch("tax_percentage")) / 100 || 0
-  const totalAmount = sub_totalRemoveDiscount - taxAmount
+  const taxAmount =
+    (sub_totalRemoveDiscount * watch("tax_percentage")) / 100 || 0;
+  const totalAmount = sub_totalRemoveDiscount - taxAmount;
 
-  useEffect(()=>{
-    setValue('total', totalAmount)
-  },[totalAmount])
+  useEffect(() => {
+    setValue("total", totalAmount);
+  }, [totalAmount]);
 
-  const totalAmountCurrencyFormat = new Intl.NumberFormat('en-us', {
-    style : 'currency',
-    currency : currency
-  }).format(totalAmount)
+  const totalAmountInCurrencyFormat = new Intl.NumberFormat("en-us", {
+    style: "currency",
+    currency: currency || watch("currency") || "INR",
+  }).format(totalAmount);
 
-  console.log("errors",errors)
-  console.log("currency",currency)
-  
   return (
-    <form className="grid py-4 gap-4 lg:gap-6" >
+    <form
+      className="grid py-4 gap-4 lg:gap-6"
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <div className="grid grid-cols-2 gap-4 lg:gap-6">
         <div className="grid">
           <div className="flex items-center">
-            <div className="min-w-9 min-h-9 text-center border h-full flex justify-center items-center bg-gray rounded-l-md">
+            <div className="min-w-9 min-h-9 text-center border h-full flex justify-center items-center bg-neutral-100 rounded-l-md ">
               #
             </div>
             <Input
@@ -129,6 +212,7 @@ export default function CreateEditInvoice({
               placeholder="Invoice No."
               className="rounded-l-none"
               {...register("invoice_no", { required: true })}
+              disabled={isLoading}
             />
           </div>
           {errors?.invoice_no && (
@@ -140,8 +224,8 @@ export default function CreateEditInvoice({
 
         <div className="grid">
           <div className="flex items-center">
-            <div className="min-w-9 min-h-9 text-center border h-full flex justify-center items-center bg-gray rounded-l-md">
-              <Calendar1Icon className="size-4" />
+            <div className="min-w-9 min-h-9 text-center border h-full flex justify-center items-center bg-neutral-100 rounded-l-md ">
+              <CalendarIcon className="size-4" />
             </div>
             <Popover>
               <PopoverTrigger className="w-full" asChild>
@@ -150,23 +234,24 @@ export default function CreateEditInvoice({
                   variant={"outline"}
                   className={cn(
                     "pl-3 text-left font-normal",
-                    !watch("invoice_date") && "text-muted-foreground",
-                    "justify-start font-normal rounded-l-none flex-1 w-full"
+                    !getValues("invoice_date") && "text-muted-foreground",
+                    "justify-start font-normal rounded-l-none flex-1 w-full "
                   )}
+                  disabled={isLoading}
                 >
-                  {watch("invoice_date") ? (
-                    format(watch("invoice_date"), "dd MMMM yyyy")
+                  {getValues("invoice_date") ? (
+                    format(getValues("invoice_date"), "PPP")
                   ) : (
-                    <span>Choisir une date</span>
+                    <span>Pick a date</span>
                   )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent>
                 <Calendar
                   mode="single"
-                  selected={watch("invoice_date")}
+                  selected={getValues("invoice_date")}
                   onSelect={(date) => {
-                    setValue("invoice_date", date || new Date, {
+                    setValue("invoice_date", date as Date, {
                       shouldValidate: true,
                     });
                   }}
@@ -178,14 +263,16 @@ export default function CreateEditInvoice({
             </Popover>
           </div>
           {errors?.invoice_date && (
-            <p className="text-xs text-red-500">{errors.invoice_date.message}</p>
+            <p className="text-xs text-red-500">
+              {errors.invoice_date.message}
+            </p>
           )}
         </div>
 
         <div className="grid">
           <div className="flex items-center">
-            <div className="min-w-9 min-h-9 text-center border h-full flex justify-center items-center bg-gray rounded-l-md">
-              <Calendar1Icon className="size-4" />
+            <div className="min-w-9 min-h-9 text-center border h-full flex justify-center items-center bg-neutral-100 rounded-l-md ">
+              <CalendarIcon className="size-4" />
             </div>
             <Popover>
               <PopoverTrigger className="w-full" asChild>
@@ -195,13 +282,14 @@ export default function CreateEditInvoice({
                   className={cn(
                     "pl-3 text-left font-normal",
                     !watch("due_date") && "text-muted-foreground",
-                    "justify-start font-normal rounded-l-none flex-1 w-full"
+                    "justify-start font-normal rounded-l-none flex-1 w-full "
                   )}
+                  disabled={isLoading}
                 >
                   {watch("due_date") ? (
-                    format(watch("due_date"), "dd MMMM yyyy")
+                    format(watch("due_date"), "PPP")
                   ) : (
-                    <span>Date limite</span>
+                    <span>Due date</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -210,7 +298,7 @@ export default function CreateEditInvoice({
                   mode="single"
                   selected={watch("due_date")}
                   onSelect={(date) => {
-                    setValue("due_date", date || new Date(), {
+                    setValue("due_date", date as Date, {
                       shouldValidate: true,
                     });
                   }}
@@ -228,25 +316,26 @@ export default function CreateEditInvoice({
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:gap-6">
-        {/* from  (current user details) */}
+        {/**from (current user details) */}
         <div className="grid gap-2">
-          <Label>Prestataire</Label>
+          <Label>From</Label>
           <div>
             <Input
               type="text"
-              placeholder="De : "
+              placeholder="From name"
               {...register("from.name", { required: true })}
+              disabled={isLoading}
             />
             {errors.from?.name && (
               <p className="text-xs text-red-500">{errors.from.name.message}</p>
             )}
           </div>
-
           <div>
             <Input
               type="text"
               placeholder="joe@example.com"
               {...register("from.email", { required: true })}
+              disabled={isLoading}
             />
             {errors.from?.email && (
               <p className="text-xs text-red-500">
@@ -259,6 +348,7 @@ export default function CreateEditInvoice({
               type="text"
               placeholder="Bldg No. / Flat No. / Shop No. / Building Name"
               {...register("from.address1", { required: true })}
+              disabled={isLoading}
             />
             {errors.from?.address1 && (
               <p className="text-xs text-red-500">
@@ -271,6 +361,7 @@ export default function CreateEditInvoice({
               type="text"
               placeholder="Street name / Landmark"
               {...register("from.address2", { required: true })}
+              disabled={isLoading}
             />
             {errors.from?.address2 && (
               <p className="text-xs text-red-500">
@@ -281,8 +372,9 @@ export default function CreateEditInvoice({
           <div>
             <Input
               type="text"
-              placeholder="City / State / country / Pincode"
+              placeholder="City / State / Country / Pincode "
               {...register("from.address3", { required: true })}
+              disabled={isLoading}
             />
             {errors.from?.address3 && (
               <p className="text-xs text-red-500">
@@ -292,25 +384,26 @@ export default function CreateEditInvoice({
           </div>
         </div>
 
-        {/* to (client details) */}
+        {/**to (client details) */}
         <div className="grid gap-2">
-          <Label>Clients</Label>
+          <Label>To</Label>
           <div>
             <Input
               type="text"
-              placeholder="Pour : "
+              placeholder="To name"
               {...register("to.name", { required: true })}
+              disabled={isLoading}
             />
             {errors.to?.name && (
               <p className="text-xs text-red-500">{errors.to.name.message}</p>
             )}
           </div>
-
           <div>
             <Input
               type="text"
               placeholder="joe@example.com"
               {...register("to.email", { required: true })}
+              disabled={isLoading}
             />
             {errors.to?.email && (
               <p className="text-xs text-red-500">{errors.to.email.message}</p>
@@ -321,6 +414,7 @@ export default function CreateEditInvoice({
               type="text"
               placeholder="Bldg No. / Flat No. / Shop No. / Building Name"
               {...register("to.address1", { required: true })}
+              disabled={isLoading}
             />
             {errors.to?.address1 && (
               <p className="text-xs text-red-500">
@@ -333,6 +427,7 @@ export default function CreateEditInvoice({
               type="text"
               placeholder="Street name / Landmark"
               {...register("to.address2", { required: true })}
+              disabled={isLoading}
             />
             {errors.to?.address2 && (
               <p className="text-xs text-red-500">
@@ -343,8 +438,9 @@ export default function CreateEditInvoice({
           <div>
             <Input
               type="text"
-              placeholder="City / State / country / Pincode"
+              placeholder="City / State / Country / Pincode "
               {...register("to.address3", { required: true })}
+              disabled={isLoading}
             />
             {errors.to?.address3 && (
               <p className="text-xs text-red-500">
@@ -355,13 +451,12 @@ export default function CreateEditInvoice({
         </div>
       </div>
 
-      {/* items details  */}
-
+      {/**item details */}
       <div className="grid gap-2">
-        <div className="grid grid-cols-6 font-semibold bg-neutral-50 py-1 px-1 gap-2">
-          <div className="col-span-3">Service</div>
-          <div>Quantité</div>
-          <div>Prix</div>
+        <div className="grid grid-cols-6 bg-neutral-50 py-1 px-1 gap-2">
+          <div className="col-span-3">Item</div>
+          <div>Quantity</div>
+          <div>Price</div>
           <div>Total</div>
         </div>
 
@@ -370,9 +465,10 @@ export default function CreateEditInvoice({
             <div className="grid grid-cols-6 gap-2" key={index}>
               <div className="col-span-3">
                 <Input
-                  placeholder="Service ou produits rendu"
+                  placeholder="Enter item name"
                   type="text"
                   {...register(`items.${index}.item_name`, { required: true })}
+                  disabled={isLoading}
                 />
                 {errors.items && errors.items[index]?.item_name && (
                   <p className="text-xs text-red-500">
@@ -382,9 +478,13 @@ export default function CreateEditInvoice({
               </div>
               <div>
                 <Input
-                  placeholder="Quantité"
+                  placeholder="Enter quantity"
+                  {...register(`items.${index}.quantity`, {
+                    required: true,
+                    valueAsNumber: true,
+                  })}
                   type="number"
-                  {...register(`items.${index}.quantity`, { required: true, valueAsNumber : true })}
+                  disabled={isLoading}
                 />
                 {errors.items && errors.items[index]?.quantity && (
                   <p className="text-xs text-red-500">
@@ -394,9 +494,13 @@ export default function CreateEditInvoice({
               </div>
               <div>
                 <Input
-                  placeholder="Prix Unitaire"
+                  placeholder="Enter price"
+                  {...register(`items.${index}.price`, {
+                    required: true,
+                    valueAsNumber: true,
+                  })}
                   type="number"
-                  {...register(`items.${index}.price`, { required: true, valueAsNumber : true })}
+                  disabled={isLoading}
                 />
                 {errors.items && errors.items[index]?.price && (
                   <p className="text-xs text-red-500">
@@ -404,109 +508,134 @@ export default function CreateEditInvoice({
                   </p>
                 )}
               </div>
-              <div className="relative">
+              <div className="relative ">
                 <Input
-                  placeholder="Total prix"
+                  placeholder="Enter total"
+                  {...register(`items.${index}.total`, {
+                    required: true,
+                    valueAsNumber: true,
+                  })}
                   type="number"
                   disabled
-                  {...register(`items.${index}.total`, { required: true })}
                 />
                 {errors.items && errors.items[index]?.total && (
                   <p className="text-xs text-red-500">
                     {errors.items[index]?.total.message}
                   </p>
                 )}
-                <div className="absolute top-0 right-0 text-red-500">
-                  <Button
-                    type="button"
-                    className="bg-red-50"
-                    variant={"ghost"}
-                    size={"icon"}
-                    onClick={() => handleRemoveItemRow(index)}
-                  >
-                    <Trash />
-                  </Button>
-                </div>
+                {index !== 0 && (
+                  <div className="absolute top-0 right-0">
+                    <Button
+                      type="button"
+                      variant={"ghost"}
+                      size={"icon"}
+                      className="bg-red-50 text-red-500"
+                      onClick={() => handleRemoveItem(index)}
+                      disabled={isLoading}
+                    >
+                      <DeleteIcon />
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           );
         })}
 
-        <Button className="w-fit" type="button" onClick={handleAddNewItemRow}>
-          Ajouter
+        <Button
+          type="button"
+          disabled={isLoading}
+          className="w-fit"
+          onClick={handleAddNewItemRow}
+        >
+          Add Item
         </Button>
       </div>
 
-      {/* sub total, discount, tax, total  */}
+      {/**sub total , discount, tax, total */}
       <div>
         <div className="max-w-sm w-full ml-auto grid gap-2">
           <div className="grid grid-cols-2">
-            <Label className="font-bold">Sub Total :</Label>
+            <Label>Sub total : </Label>
             <Input
               disabled
               placeholder="Sub total"
               type="number"
-              {...register("sub_total", {valueAsNumber : true })}
+              {...register("sub_total", { valueAsNumber: true })}
             />
           </div>
           <div className="grid grid-cols-2">
-            <Label className="font-bold">Discount :</Label>
+            <Label>Discount : </Label>
             <Input
-              placeholder="Discount"
+              placeholder="discount"
               type="number"
-              {...register("sub_total", {valueAsNumber : true })}
+              {...register("discount", { valueAsNumber: true })}
+              disabled={isLoading}
             />
           </div>
           <div className="grid grid-cols-2">
-            <Label className="font-bold"></Label>
+            <Label> </Label>
             <Input
               placeholder="Sub total"
+              type="number"
               value={sub_totalRemoveDiscount ?? ""}
               disabled
-              type="number"
             />
           </div>
           <div className="grid grid-cols-2">
-            <Label className="font-bold">
-              Tax :{" "}
+            <Label>
+              Tax:{" "}
               <Input
-                placeholder="0"
+                placeholder="%"
                 type="text"
                 className="min-w-14 w-14 max-w-14"
-                {...register("tax_percentage", { valueAsNumber : true})}
+                {...register("tax_percentage", { valueAsNumber: true })}
+                disabled={isLoading}
               />
               %{" "}
             </Label>
             <Input
-              placeholder="Tax amount"
-              disabled
+              placeholder="tax amount"
               type="number"
               value={taxAmount}
+              disabled
             />
+            {errors.tax_percentage && (
+              <p className="text-xs text-red-500 block">
+                {errors.tax_percentage.message}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2">
-            <Label className="font-bold">Total : </Label>
-            <Input placeholder="Total" disabled type="number" className="font-semibold"  value={totalAmount ?? ""}
-            {...register('total',{ valueAsNumber : true})}/>
+            <Label>Total</Label>
+            <Input
+              placeholder="Total"
+              type="number"
+              className="font-semibold"
+              // value={totalAmount ?? ""}
+              disabled
+              {...register("total", { valueAsNumber: true })}
+            />
           </div>
-
-          <div className="flex items-center justify-center min-h-14 font-bold text-2xl lg:text-3xl">
-            {totalAmountCurrencyFormat}
+          <div className="flex items-center justify-center min-h-14 font-bold text-lg">
+            {totalAmountInCurrencyFormat}
           </div>
         </div>
       </div>
 
-      {/* notes  */}
-      <div className="rid gap-2 max-w-xl">
-        <Label>
-          Notes : 
-        </Label>
-
+      {/**notes */}
+      <div className="grid gap-2 max-w-xl">
+        <Label>Notes:</Label>
         <Textarea
+          disabled={isLoading}
           placeholder="Enter your notes"
+          {...register("notes")}
         />
       </div>
-      <Button size={"lg"}>Create invoice</Button>
+
+      <Button size={"lg"}>
+        {isLoading ? "Please wait..." : invoiceId ? "Update Invoice" : "Create Invoice"}
+      </Button>
     </form>
   );
 }

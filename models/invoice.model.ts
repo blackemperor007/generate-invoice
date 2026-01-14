@@ -48,6 +48,8 @@ export interface IInvoice {
 
     status : string
 
+    userId : mongoose.Types.ObjectId
+
     createdAt? : Date
     updatedAt? : Date
 }
@@ -92,7 +94,9 @@ const InvoiceSchema = new mongoose.Schema<IInvoice>({
 
     notes : { type : String , default : null }, 
 
-    status : { type : String, Status }
+    status : { type : String, Status },
+
+    userId : { type : mongoose.Schema.ObjectId, ref : "user" }
 
 }, {
     timestamps : true
