@@ -9,12 +9,6 @@ interface IUserInvoice {
 
 }
 
-const Status = [
-    "PAYER",
-    "NON PAYER",
-    "ANNULER"
-]
-
 interface IItem {
     item_name : string
     quantity : number
@@ -53,6 +47,12 @@ export interface IInvoice {
     createdAt? : Date
     updatedAt? : Date
 }
+
+const Status = [
+    "PAID",
+    "UNPAID",
+    "CANCEL"
+]
 
 const userInvoiceSchema = new mongoose.Schema<IUserInvoice>({
     name : { type : String, required : true },
@@ -94,7 +94,7 @@ const InvoiceSchema = new mongoose.Schema<IInvoice>({
 
     notes : { type : String , default : null }, 
 
-    status : { type : String, Status },
+    status : { type : String, enum : Status },
 
     userId : { type : mongoose.Schema.ObjectId, ref : "user" }
 

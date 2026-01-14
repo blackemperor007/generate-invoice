@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Button, buttonVariants } from '../ui/button';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 interface EmailTemplateProps {
